@@ -34,7 +34,8 @@ public class MapJournalDbHelper extends SQLiteOpenHelper {
   
   private static final String CREATE_TABLE_TRIP =
       "CREATE TABLE " + TripEntry.TABLE_NAME + "(" +
-      TripEntry._ID + " INTEGER PRIMARY KEY" + "," +  
+      TripEntry._ID + " INTEGER PRIMARY KEY" + "," +
+      TripEntry._COUNT + "INTEGER" + "," +
       TripEntry.COLUMN_NAME_NAME + " TEXT" + "," +
       TripEntry.COLUMN_NAME_DESC + " TEXT" + 
       ")";
@@ -42,6 +43,7 @@ public class MapJournalDbHelper extends SQLiteOpenHelper {
   private static final String CREATE_TABLE_POINT = 
       "CREATE TABLE " + PointEntry.TABLE_NAME + "(" + 
       PointEntry._ID + " INTEGER PRIMARY KEY" + "," +
+      PointEntry._COUNT + "INTEGER" + "," +
       PointEntry.COLUMN_NAME_TRIP + " INTEGER" + "," +
       PointEntry.COLUMN_NAME_TITLE + " TEXT" + "," +
       PointEntry.COLUMN_NAME_LATITUDE + " REAL" + "," +
@@ -57,6 +59,7 @@ public class MapJournalDbHelper extends SQLiteOpenHelper {
   private static final String CREATE_TABLE_MEDIA = 
       "CREATE TABLE " + MediaEntry.TABLE_NAME + "(" +
       MediaEntry._ID + " INTEGER PRIMARY KEY" + "," +
+      MediaEntry._COUNT + "INTEGER" + "," +
       MediaEntry.COLUMN_NAME_POINT_ID + " INTEGER" + "," +
       MediaEntry.COLUMN_NAME_CAPTION + " TEXT" + "," +
       MediaEntry.COLUMN_NAME_PATH + " TEXT" + "," +
