@@ -25,8 +25,12 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class MapJournalDbHelper extends SQLiteOpenHelper {
   
+  private static MapJournalDbHelper instance;
+  
   private static final int DATABASE_VERSION = 1;
   private static final String DATABASE_NAME = "MapJournal.db";
+  
+  private static final String ENABLE_FOREIGN_KEYS = "PRAGMA foreign_keys = ON;";
   
   private static final String CREATE_TABLE_TRIP =
       "CREATE TABLE " + TripEntry.TABLE_NAME + "(" +
@@ -60,12 +64,26 @@ public class MapJournalDbHelper extends SQLiteOpenHelper {
         PointEntry.TABLE_NAME + "(" + PointEntry._ID + ")" +
       ")";
   
-  public MapJournalDbHelper(Context context) {
+  /**
+   * Factory method for getting a MapJournalDbHelper. Enforces the singleton
+   * property to prevent issues with concurrency in the db. 
+   * @param context
+   * @return The instance of MapJournalDbHelper
+   */
+  public static MapJournalDbHelper getInstance(Context context) {
+    if (instance == null) {
+      instance = new MapJournalDbHelper(context.getApplicationContext());
+    }
+    return instance;
+  }
+  
+  private MapJournalDbHelper(Context context) {
     super(context, DATABASE_NAME, null, DATABASE_VERSION);
   }
   
   @Override
   public void onCreate(SQLiteDatabase db) {
+    db.execSQL(ENABLE_FOREIGN_KEYS);
     db.execSQL(CREATE_TABLE_TRIP);
     db.execSQL(CREATE_TABLE_POINT);
     db.execSQL(CREATE_TABLE_MEDIA);
