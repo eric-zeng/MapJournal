@@ -91,6 +91,12 @@ public class MapJournalDbHelper extends SQLiteOpenHelper {
     db.execSQL(CREATE_TABLE_POINT);
     db.execSQL(CREATE_TABLE_MEDIA);
   }
+  
+  @Override
+  public void onOpen(SQLiteDatabase db) {
+    super.onOpen(db);
+    db.execSQL(ENABLE_FOREIGN_KEYS);
+  }
 
   @Override
   public void onUpgrade(SQLiteDatabase db, int arg1, int arg2) {
