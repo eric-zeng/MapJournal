@@ -1,3 +1,18 @@
+/*  Copyright 2014 Eric Zeng
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 package com.example.mapjournal.model;
 
 import java.util.ArrayList;
@@ -5,6 +20,7 @@ import java.util.List;
 
 import com.example.mapjournal.model.MapJournalDbContract.MediaEntry;
 import com.example.mapjournal.model.MapJournalDbContract.PointEntry;
+import com.example.mapjournal.model.MapJournalDbContract.TripEntry;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -12,6 +28,11 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 
+/**
+ * Database Access Object for the MapJournal databases. 
+ * @author ericzeng
+ *
+ */
 public class MapJournalDAO {
   private SQLiteDatabase db;
   private MapJournalDbHelper openHelper;
@@ -34,6 +55,13 @@ public class MapJournalDAO {
       MediaEntry.COLUMN_NAME_POINT_ID,
       MediaEntry.COLUMN_NAME_CAPTION,
       MediaEntry.COLUMN_NAME_PATH
+  };
+  
+  // All columns in the Trip table
+  private static final String[] TRIP_COLUMNS = {
+      TripEntry._ID,
+      TripEntry.COLUMN_NAME_NAME,
+      TripEntry.COLUMN_NAME_DESC
   };
   
   /**
@@ -83,7 +111,7 @@ public class MapJournalDAO {
    * @return A Point object with the given id
    */
   public Point getPoint(long id) {
-    String pointSelection = PointEntry._ID;
+    String pointSelection = PointEntry._ID + " LIKE ?";
     String[] pointSelectionArgs = {String.valueOf(id)};
     Cursor c = db.query(PointEntry.TABLE_NAME,
                         POINT_COLUMNS,
@@ -117,7 +145,7 @@ public class MapJournalDAO {
     ContentValues pointValues = new ContentValues();
     putPointValues(pointValues, point);
     
-    String pointSelection = PointEntry._ID;
+    String pointSelection = PointEntry._ID + " LIKE ?";
     String[] pointSelectionArgs = {String.valueOf(point.getId())};
     
     db.update(PointEntry.TABLE_NAME,
@@ -132,7 +160,7 @@ public class MapJournalDAO {
    * @param point The Point be deleted from the database. 
    */
   public void deletePoint(Point point) {
-    String pointSelection = PointEntry._ID;
+    String pointSelection = PointEntry._ID + " LIKE ?";
     String[] pointSelectionArgs = {String.valueOf(point.getId())};
     db.delete(PointEntry.TABLE_NAME, pointSelection, pointSelectionArgs);
     
@@ -160,7 +188,7 @@ public class MapJournalDAO {
    * @return A MediaItem object with the given id
    */
   public MediaItem getMedia(long id) {
-    String mediaSelection = MediaEntry._ID;
+    String mediaSelection = MediaEntry._ID + " LIKE ?";
     String[] mediaSelectionArgs = {String.valueOf(id)};
     
     Cursor c = db.query(MediaEntry.TABLE_NAME,
@@ -186,7 +214,7 @@ public class MapJournalDAO {
    * @return A list of MediaItems associated with the point. 
    */
   public List<MediaItem> getMediaByPoint(long pointId) {
-    String mediaSelection = MediaEntry.COLUMN_NAME_POINT_ID;
+    String mediaSelection = MediaEntry.COLUMN_NAME_POINT_ID + " LIKE ?";
     String[] mediaSelectionArgs = { String.valueOf(pointId) };
     Cursor d = db.query(MediaEntry.TABLE_NAME,
                         MEDIA_COLUMNS,
@@ -216,7 +244,7 @@ public class MapJournalDAO {
     ContentValues mediaValues = new ContentValues();
     putMediaValues(mediaValues, item);
     
-    String mediaSelection = MediaEntry._ID;
+    String mediaSelection = MediaEntry._ID + " LIKE ?";
     String[] mediaSelectionArgs = {String.valueOf(item.getId())};
     
     db.update(MediaEntry.TABLE_NAME,
@@ -230,10 +258,100 @@ public class MapJournalDAO {
    * @param item The MediaItem to be deleted
    */
   public void deleteMedia(MediaItem item) {
-    String mediaSelection = MediaEntry._ID;
+    String mediaSelection = MediaEntry._ID + " LIKE ?";
     String[] mediaSelectionArgs = { String.valueOf(item.getId()) };
     
     db.delete(MediaEntry.TABLE_NAME, mediaSelection, mediaSelectionArgs);
+  }
+  
+  /**
+   * Creates a new Trip entry in the database. Points in the Trip object are
+   * not added to the database. 
+   * @param trip The Trip to add to the database. 
+   */
+  public void createTrip(Trip trip) {
+    ContentValues tripValues = new ContentValues();
+    putTripValues(tripValues, trip);
+    
+    long newId = db.insert(TripEntry.TABLE_NAME, null, tripValues);
+    trip.setId(newId);
+  }
+  
+  /**
+   * Retrieves a trip from the database and puts the data into a Trip object.
+   * @param id The id of the Trip to receive
+   * @return A Trip object containing the data from the selected entry
+   */
+  public Trip getTrip(long id) {
+    String tripSelection = TripEntry._ID + " LIKE ?";
+    String[] tripSelectionArgs = { String.valueOf(id) };
+    
+    Cursor c = db.query(TripEntry.TABLE_NAME,
+                        TRIP_COLUMNS,
+                        tripSelection,
+                        tripSelectionArgs,
+                        null,
+                        null,
+                        null);
+    
+    Trip result = new Trip(
+        c.getLong(c.getColumnIndexOrThrow(TripEntry._ID)),
+        c.getString(c.getColumnIndexOrThrow(TripEntry.COLUMN_NAME_NAME)),
+        c.getString(c.getColumnIndexOrThrow(TripEntry.COLUMN_NAME_DESC)),
+        null);
+    return result;
+  }
+  
+  /**
+   * Retrieves all Trips stored in the database.
+   * @return A list containing every Trip in the database. 
+   */
+  public List<Trip> getAllTrips() {
+    Cursor c = db.query(TripEntry.TABLE_NAME,
+                        TRIP_COLUMNS,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null);
+    List<Trip> trips = new ArrayList<Trip>();
+    while (!c.isAfterLast()) {
+      Trip t = new Trip(
+        c.getLong(c.getColumnIndexOrThrow(TripEntry._ID)),
+        c.getString(c.getColumnIndexOrThrow(TripEntry.COLUMN_NAME_NAME)),
+        c.getString(c.getColumnIndexOrThrow(TripEntry.COLUMN_NAME_DESC)),
+        null);
+      trips.add(t);
+      c.moveToNext();
+    }
+    return trips;
+  }
+  
+  /**
+   * Updates the given Trip in the database. 
+   * @param trip The Trip to be updated. 
+   */
+  public void updateTrip(Trip trip) {
+    ContentValues tripValues = new ContentValues();
+    putTripValues(tripValues, trip);
+    
+    String tripSelection = TripEntry._ID + " LIKE ?";
+    String[] tripSelectionArgs = { String.valueOf(trip.getId()) };
+    
+    db.update(TripEntry.TABLE_NAME,
+              tripValues,
+              tripSelection,
+              tripSelectionArgs);
+  }
+  
+  /**
+   * Deletes the given Trip from the database.
+   * @param trip The Trip to be deleted.
+   */
+  public void deleteTrip(Trip trip) {
+    String tripSelection = TripEntry._ID + " LIKE ?";
+    String[] tripSelectionArgs = { String.valueOf(trip.getId()) };
+    db.delete(TripEntry.TABLE_NAME, tripSelection, tripSelectionArgs);
   }
   
   /**
@@ -255,12 +373,22 @@ public class MapJournalDAO {
   /**
    * Helper method to put every field of a MediaItem into a ContentValues object
    * @param values The ContentValues to be filled
-   * @param item The Point to retrieve data from
+   * @param item The MediaItem to retrieve data from
    */
   private void putMediaValues(ContentValues values, MediaItem item) {
     values.put(MediaEntry.COLUMN_NAME_POINT_ID, item.getPointId());
     values.put(MediaEntry.COLUMN_NAME_CAPTION, item.getCaption());
     values.put(MediaEntry.COLUMN_NAME_PATH, item.getFilePath());
+  }
+  
+  /**
+   * Helper method to put every field of a Trip into a ContentValues object.
+   * @param values The ContentValues to be filled
+   * @param trip The Trip to retrieve data from
+   */
+  private void putTripValues(ContentValues values, Trip trip) {
+    values.put(TripEntry.COLUMN_NAME_NAME, trip.getName());
+    values.put(TripEntry.COLUMN_NAME_DESC, trip.getDescription());
   }
   
 }
