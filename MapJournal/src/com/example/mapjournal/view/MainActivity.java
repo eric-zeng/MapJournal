@@ -7,7 +7,6 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import com.example.mapjournal.R;
@@ -32,8 +31,7 @@ public class MainActivity extends ActionBarActivity {
     drawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
     
     // Set up the drawer's list view
-    drawerList.setAdapter(new ArrayAdapter<String>(this,
-        R.layout.drawer_row, drawerItems));
+    drawerList.setAdapter(new DrawerArrayAdapter(this, drawerItems));
     drawerList.setOnItemClickListener(new DrawerItemClickListener());
 
     // Enable action bar icon to toggle navigation drawer
