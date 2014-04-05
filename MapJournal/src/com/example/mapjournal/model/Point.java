@@ -16,15 +16,7 @@
 package com.example.mapjournal.model;
 
 import java.util.List;
-import java.util.LinkedList;
 import java.util.NoSuchElementException;
-
-import com.example.mapjournal.model.MapJournalDbContract.*;
-
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.location.Location;
-import android.util.Log;
 
 /**
  * The Point class represents a single location that a user has added to a trip.
