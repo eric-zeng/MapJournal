@@ -2,8 +2,9 @@
 <resources>
     <string-array name="drawer_array">
         <item>Current Trip</item>
-        <item>Create Trip</item>
-        <item>Load Trip</item>
+        <item>Map</item>
+        <item>Trip Overview</item>
+        <item>My Trips</item>
         <item>Settings</item>
     </string-array>
 </resources>
