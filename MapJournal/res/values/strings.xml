@@ -6,4 +6,7 @@
     
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
+    
+    <string name="action_current_location">Go to Current Location</string>
+    <string name="action_new_point">Create a new Point</string>
 </resources>

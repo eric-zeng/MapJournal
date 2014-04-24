@@ -1,0 +1,17 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:mapJournal="http://schemas.android.com/apk/res-auto" >
+    
+    <item
+        android:id="@+id/action_current_location"
+        android:icon="@drawable/ic_action_location_found"
+        android:orderInCategory="99"
+        android:title="@string/action_current_location"        
+        mapJournal:showAsAction="always" />
+    <item
+        android:id="@+id/action_new_point"
+        android:icon="@drawable/ic_action_new"
+        android:orderInCategory="98"
+        android:title="@string/action_new_point"
+        mapJournal:showAsAction="always" />
+
+</menu>

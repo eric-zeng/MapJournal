@@ -13,6 +13,8 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -24,9 +26,12 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMapOptions;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 public class MainActivity extends ActionBarActivity implements
     GooglePlayServicesClient.ConnectionCallbacks,
@@ -46,6 +51,8 @@ public class MainActivity extends ActionBarActivity implements
   // Map components
   private GoogleMap map;
   private LocationClient locationClient;
+  private boolean moveCameraToCurrentLocationFlag;
+  private Marker currentLocation;
   
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -83,8 +90,11 @@ public class MainActivity extends ActionBarActivity implements
       // Don't create the map if resuming from a saved state
       if (savedInstanceState != null) {
         return;
-      }  
-      MapFragment mapFragment = new MapFragment();
+      }
+      
+      GoogleMapOptions options = new GoogleMapOptions();      
+      MapFragment mapFragment = MapFragment.newInstance(
+          options.zoomControlsEnabled(false));
       getFragmentManager().beginTransaction()
           .add(R.id.content_frame, mapFragment, "map").commit();
       map = mapFragment.getMap();
@@ -97,32 +107,17 @@ public class MainActivity extends ActionBarActivity implements
     drawerToggle.syncState();
   }
   
-  @Override
-  public void onConfigurationChanged(Configuration newConfig) {
-    super.onConfigurationChanged(newConfig);
-    drawerToggle.onConfigurationChanged(newConfig);
-  }
-  
-  @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
-    // Pass the event to ActionBarDrawerToggle, if it returns
-    // true, then it has handled the app icon touch event
-    if (drawerToggle.onOptionsItemSelected(item)) {
-      return true;
-    }
-    
-    
-    return super.onOptionsItemSelected(item);
-  }
-  
   /*
    * Called when the Activity becomes visible.
    */
   @Override
   protected void onStart() {
       super.onStart();
+      
+      // Set flag to center on location after location client is connected
+      moveCameraToCurrentLocationFlag = true; 
       // Connect the client.
-      locationClient.connect();
+      locationClient.connect();      
   }
   
   /*
@@ -135,6 +130,35 @@ public class MainActivity extends ActionBarActivity implements
       super.onStop();
   }
   
+  @Override
+  public void onConfigurationChanged(Configuration newConfig) {
+    super.onConfigurationChanged(newConfig);
+    drawerToggle.onConfigurationChanged(newConfig);
+  }
+  
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    // Inflate the menu items for use in the action bar
+    MenuInflater inflater = getMenuInflater();
+    inflater.inflate(R.menu.activity_main_actions, menu);
+    return super.onCreateOptionsMenu(menu);
+  }
+  
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    // Pass the event to ActionBarDrawerToggle, if it returns
+    // true, then it has handled the app icon touch event
+    if (drawerToggle.onOptionsItemSelected(item)) {
+      return true;
+    }
+    
+    switch (item.getItemId()) {
+      case R.id.action_current_location:
+        moveCameraToCurrentLocation();
+    }
+    return super.onOptionsItemSelected(item);
+  }
+  
   /*
    * Called by Location Services when the request to connect the
    * client finishes successfully. At this point, you can
@@ -144,16 +168,9 @@ public class MainActivity extends ActionBarActivity implements
   public void onConnected(Bundle dataBundle) {
     // Display the connection status
     Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
-    
-    setUpMapIfNeeded();
-    
-    Location l = locationClient.getLastLocation();
-    LatLng currentCoords = new LatLng(l.getLatitude(), l.getLongitude());
-    CameraPosition p = new CameraPosition.Builder()
-        .target(currentCoords)
-        .zoom(15)
-        .build();
-    map.animateCamera(CameraUpdateFactory.newCameraPosition(p));
+    if (moveCameraToCurrentLocationFlag) {
+      moveCameraToCurrentLocation();
+    }
   }
 
   /*
@@ -226,16 +243,38 @@ public class MainActivity extends ActionBarActivity implements
     }
   }
   
+  private void moveCameraToCurrentLocation() {
+    moveCameraToCurrentLocationFlag = false;
+    
+    setUpMapIfNeeded();
+    
+    Location l = locationClient.getLastLocation();
+    LatLng currentCoords = new LatLng(l.getLatitude(), l.getLongitude());
+    
+    if(currentLocation == null) {
+      currentLocation = map.addMarker(new MarkerOptions()
+                            .position(currentCoords)
+                            .title("You are here"));
+    } else {
+      currentLocation.setPosition(currentCoords);
+    }
+    
+    CameraPosition p = new CameraPosition.Builder()
+        .target(currentCoords)
+        .zoom(15)
+        .build();
+    map.animateCamera(CameraUpdateFactory.newCameraPosition(p));
+  }
+  
   private void setUpMapIfNeeded() {
     // Do a null check to confirm that we have not already instantiated the map.
     if (map == null) {
-        map = ((MapFragment) getFragmentManager().findFragmentByTag("map"))
-            .getMap();
-        // Check if we were successful in obtaining the map.
-        if (map != null) {
-            // The Map is verified. It is now safe to manipulate the map.
-
-        }
+      map = ((MapFragment) getFragmentManager().findFragmentByTag("map"))
+          .getMap();
+      // Check if we were successful in obtaining the map.
+      if (map != null) {
+        // The Map is verified. It is now safe to manipulate the map.
+      }
     }
 }
   
@@ -253,8 +292,7 @@ public class MainActivity extends ActionBarActivity implements
       // Set the dialog in the DialogFragment
       errorFragment.setDialog(errorDialog);
       // Show the error dialog in the DialogFragment
-      errorFragment.show(getFragmentManager(),
-              "Location Updates");
+      errorFragment.show(getFragmentManager(), "Location Updates");
     }
   }
   
