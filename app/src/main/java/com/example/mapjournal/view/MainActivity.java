@@ -20,10 +20,12 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.example.mapjournal.R;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMapOptions;
@@ -34,8 +36,9 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 public class MainActivity extends ActionBarActivity implements
-    GooglePlayServicesClient.ConnectionCallbacks,
-    GooglePlayServicesClient.OnConnectionFailedListener {
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener,
+        LocationListener {
   /*
    * Define a request code to send to Google Play services
    * This code is returned in Activity.onActivityResult
@@ -50,7 +53,7 @@ public class MainActivity extends ActionBarActivity implements
   
   // Map components
   private GoogleMap map;
-  private LocationClient locationClient;
+  private GoogleApiClient mGoogleApiClient;
   private boolean moveCameraToCurrentLocationFlag;
   private Marker currentLocation;
   
@@ -72,8 +75,8 @@ public class MainActivity extends ActionBarActivity implements
     drawerList.setOnItemClickListener(new DrawerItemClickListener());
 
     // Enable action bar icon to toggle navigation drawer
-    getActionBar().setDisplayHomeAsUpEnabled(true);
-    getActionBar().setHomeButtonEnabled(true);
+    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    getSupportActionBar().setHomeButtonEnabled(true);
     
     // Set up ActionBar toggler
     drawerToggle = new ActionBarDrawerToggle(this,
@@ -82,10 +85,15 @@ public class MainActivity extends ActionBarActivity implements
                                              R.string.drawer_open,
                                              R.string.drawer_close);
     drawerLayout.setDrawerListener(drawerToggle);
-    
-    locationClient = new LocationClient(this, this, this);
-    
-    // Add the map to the content frame
+
+    mGoogleApiClient = new GoogleApiClient.Builder(this)
+        .addApi(LocationServices.API)
+        .addConnectionCallbacks(this)
+        .addOnConnectionFailedListener(this)
+        .build();
+
+
+      // Add the map to the content frame
     if (findViewById(R.id.content_frame) != null) {
       // Don't create the map if resuming from a saved state
       if (savedInstanceState != null) {
@@ -115,9 +123,7 @@ public class MainActivity extends ActionBarActivity implements
       super.onStart();
       
       // Set flag to center on location after location client is connected
-      moveCameraToCurrentLocationFlag = true; 
-      // Connect the client.
-      locationClient.connect();      
+      moveCameraToCurrentLocationFlag = true;
   }
   
   /*
@@ -125,8 +131,6 @@ public class MainActivity extends ActionBarActivity implements
    */
   @Override
   protected void onStop() {
-      // Disconnecting the client invalidates it.
-      locationClient.disconnect();
       super.onStop();
   }
   
@@ -173,18 +177,11 @@ public class MainActivity extends ActionBarActivity implements
     }
   }
 
-  /*
-   * Called by Location Services if the connection to the
-   * location client drops because of an error.
-   */
-  @Override
-  public void onDisconnected() {
-    // Display the connection status
-    Toast.makeText(this,
-                   "Disconnected. Please re-connect.",
-                   Toast.LENGTH_SHORT).show();
-  }
-  
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
   /*
    * Called by Location Services if the attempt to
    * Location Services fails.
@@ -248,7 +245,7 @@ public class MainActivity extends ActionBarActivity implements
     
     setUpMapIfNeeded();
     
-    Location l = locationClient.getLastLocation();
+    Location l = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
     LatLng currentCoords = new LatLng(l.getLatitude(), l.getLongitude());
     
     if(currentLocation == null) {
@@ -311,8 +308,13 @@ public class MainActivity extends ActionBarActivity implements
       return false;
     }
   }
-  
-  // Define a DialogFragment that displays the error dialog
+
+    @Override
+    public void onLocationChanged(Location location) {
+
+    }
+
+    // Define a DialogFragment that displays the error dialog
   public static class ErrorDialogFragment extends DialogFragment {
     // Global field to contain the error dialog
     private Dialog mDialog;

@@ -261,7 +261,7 @@ public class Point {
    * Removes the media item with the given filepath from this point. The item
    * is not removed from the device. 
    * @param filepath The path of the MediaItem to be removed
-   * @throws NoSuchElementException if the Point does not have an item with
+   * @throws java.util.NoSuchElementException if the Point does not have an item with
    *         the given path.
    * @throws NullPointerException if filepath is null. 
    */

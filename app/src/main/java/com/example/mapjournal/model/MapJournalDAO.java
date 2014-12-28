@@ -74,7 +74,7 @@ public class MapJournalDAO {
   
   /**
    * Opens a new connection to the database
-   * @throws SQLiteException
+   * @throws android.database.sqlite.SQLiteException
    */
   public void open() throws SQLiteException {
     db = openHelper.getWritableDatabase();
