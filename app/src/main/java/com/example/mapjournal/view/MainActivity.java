@@ -8,10 +8,10 @@ import android.content.IntentSender;
 import android.content.res.Configuration;
 import android.location.Location;
 import android.os.Bundle;
-import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -22,7 +22,6 @@ import android.widget.Toast;
 import com.example.mapjournal.R;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
@@ -81,7 +80,6 @@ public class MainActivity extends ActionBarActivity implements
     // Set up ActionBar toggler
     drawerToggle = new ActionBarDrawerToggle(this,
                                              drawerLayout,
-                                             R.drawable.ic_drawer,
                                              R.string.drawer_open,
                                              R.string.drawer_close);
     drawerLayout.setDrawerListener(drawerToggle);
